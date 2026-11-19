@@ -1,0 +1,22 @@
+# Sem segredos neste arquivo. Chaves ficam só no painel do Netlify (produção)
+# ou no .env local (desenvolvimento).
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "24"
+
+[dev]
+  command = "npm run dev"
+  targetPort = 5173
+  port = 8888
+  framework = "#custom"
+
+# Páginas do Vue Router: qualquer rota que não seja arquivo volta ao index.html.
+# As Functions têm caminho próprio (/api/...) definido em cada arquivo.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
