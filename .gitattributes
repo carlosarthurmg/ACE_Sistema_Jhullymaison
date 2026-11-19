@@ -1,0 +1,7 @@
+# Mesmo fim de linha no Windows e no Mac
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.pdf binary

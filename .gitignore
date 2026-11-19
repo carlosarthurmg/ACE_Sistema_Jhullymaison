@@ -1,0 +1,28 @@
+# Dependências e builds
+node_modules/
+dist/
+coverage/
+.netlify/
+
+# SEGREDOS: nunca versionar. Só o .env.example vai para o Git.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Backups do banco e arquivos de dados (guardar fora do repositório)
+*.dump
+*.sql.gz
+backups/
+
+# ZIP não é entrega: o código vai por commit
+*.zip
+
+# Sistema e editores
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/*
+!.vscode/extensions.json
