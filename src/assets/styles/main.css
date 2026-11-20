@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./catalog.css";
 
 /* Cores provisórias (preto e dourado). Validar com a cliente e,
    se mudar, alterar SÓ aqui. Use sempre estas classes: bg-brand-black, text-brand-gold... */

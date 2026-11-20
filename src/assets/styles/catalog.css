@@ -1,0 +1,43 @@
+/* Classes de componente do catálogo (Rodolfo).
+   Usa SÓ os tokens do main.css do projeto (--color-brand-*); não define cores novas.
+   Importado em main.css:  @import "./catalog.css"; (logo depois do @import "tailwindcss") */
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+  min-height: 2.75rem; padding: .5rem 1.25rem; border-radius: .75rem;
+  font-size: 1rem; font-weight: 600; border: 1px solid transparent; cursor: pointer;
+  transition: background-color .15s, border-color .15s;
+}
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn:focus-visible, .field:focus-visible, .chip:focus-visible {
+  outline: 2px solid var(--color-brand-gold-dark, #7a5c14); outline-offset: 2px;
+}
+.btn-primary { background: var(--color-brand-black, #0d0d0d); color: var(--color-brand-cream, #faf7f0); }
+.btn-primary:hover:not(:disabled) { background: var(--color-brand-graphite, #1a1a1a); }
+.btn-secondary {
+  background: #fff; color: var(--color-brand-black, #0d0d0d);
+  border-color: color-mix(in srgb, var(--color-brand-black, #0d0d0d) 20%, transparent);
+}
+.btn-secondary:hover:not(:disabled) { border-color: var(--color-brand-gold, #c9a24a); }
+.btn-danger { background: #991b1b; color: #fff; }
+
+.field {
+  width: 100%; min-height: 2.75rem; padding: .5rem .875rem; border-radius: .75rem;
+  border: 1px solid color-mix(in srgb, var(--color-brand-black, #0d0d0d) 20%, transparent);
+  background: #fff; color: var(--color-brand-black, #0d0d0d); font-size: 1rem;
+}
+.chip {
+  display: inline-flex; align-items: center; min-height: 2.75rem; padding: .25rem 1rem;
+  border-radius: 999px; background: #fff; font-size: 1rem; font-weight: 600;
+  border: 1px solid color-mix(in srgb, var(--color-brand-black, #0d0d0d) 20%, transparent);
+  color: var(--color-brand-black, #0d0d0d);
+}
+.chip-active {
+  background: var(--color-brand-black, #0d0d0d); color: var(--color-brand-cream, #faf7f0);
+  border-color: var(--color-brand-black, #0d0d0d);
+}
+.card {
+  background: #fff; border-radius: 1rem; padding: 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--color-brand-black, #0d0d0d) 15%, transparent);
+}
+.sr-only-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
