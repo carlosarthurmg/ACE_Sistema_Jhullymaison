@@ -27,9 +27,9 @@ Branch: `feature/RF-03-catalog`. Versão alinhada ao **Adendo 1 v1.1** e ao reto
 | 11: acessibilidade (RNF20) | Ver checklist no fim. |
 
 ## Integração com o projeto-base (como está o repositório hoje)
-O módulo foi testado numa réplica do projeto do Carlos (mesmos `package.json`, `tsconfig.json`, `vite.config.ts`, `response.ts`, `api-client.ts`, `main.css` e router): `npm run build` (vue-tsc + vite build) passa e os 23 testes passam.
+Verificação no repositório real (branch `feature/RF-03-catalog`, já com o `pricing.ts` do Carlos vindo da `develop`), em 21/11/2026: `npm run typecheck` passa sem erros, `npm test` passa com **41 testes** (27 do pricing do Carlos, 13 do catálogo e 1 do projeto-base) e `npm run build` (vue-tsc + vite build) passa.
 
-**Arquivos novos (só meus, sem colisão):** tudo em `src/` (componentes, views, `catalog.service.ts`, `catalog.types.ts`, `catalog.routes.ts`, `catalog.css`…), `netlify/functions/*` do catálogo, `_shared/{catalog,catalog-errors,catalog-validation,pricing,supabase,audit}.ts`, `tests/` e `supabase/migrations/007_catalog_atomic_operations.sql`.
+**Arquivos novos (só meus, sem colisão):** tudo em `src/` (componentes, views, `catalog.service.ts`, `catalog.types.ts`, `catalog.routes.ts`, `catalog.css`…), `netlify/functions/*` do catálogo, `_shared/{catalog,catalog-errors,catalog-validation,supabase,audit}.ts`, `tests/` e `supabase/migrations/007_catalog_atomic_operations.sql`.
 
 **Arquivos compartilhados que o módulo mexe (avisar o grupo no PR):**
 | Arquivo | Mudança |
@@ -53,7 +53,7 @@ Para trabalhar enquanto isso, use os arquivos de `_stubs-nao-commitar/` (do zip,
 
 ## Preço (Adendo 4.5)
 `netlify/functions/_shared/pricing.ts` implementa a regra: produto = promoção vigente ou `base_price`; variação = `price × promocional ÷ base_price` (2 casas); adicionais sem desconto; total do item = `(efetivo + Σ adicional × qtd) × quantidade`; total do pedido = soma dos itens.
-O arquivo é do Carlos pelo Adendo. Se ele já tiver o dele, usamos o dele e ajustamos `_shared/catalog.ts` (usa `resolvePrice` e `variantEffectivePrice`). Testes em `tests/api/pricing.test.ts`.
+O arquivo é do Carlos (PR #3, já na `develop`) e o catálogo não calcula preço: `_shared/catalog.ts` só converte as promoções do banco para o formato dele e chama `getEffectivePrice`. Testes em `tests/unit/pricing.test.ts` (do Carlos).
 
 ## Consistência entre banco e Storage
 O banco é a fonte da verdade.
@@ -76,7 +76,7 @@ Admin: `/api/admin/categories[/:id]`, `/api/admin/products[/:id]`, `/api/admin/p
 O upload mantém a rota do Guia (`POST /api/admin/products/:id/image`); cada chamada adiciona uma foto (Adendo 4.2). Além do Guia: `GET` de detalhe/lista admin, `PATCH/DELETE` dos filhos e `PATCH/DELETE /image/:imageId` (capa, descrição, remover).
 
 ## Testes
-Automatizados: `npx vitest run` (23 testes: preço, validação, tipo de imagem, mapeamento de erros) e `node tests/sql/catalog-sql.test.mjs` (verificações das migrations 002 e 007 num PostgreSQL real, via `@electric-sql/pglite`; precisa da 002 do Carlos no repositório e de `npm i -D @electric-sql/pglite`).
+Automatizados: `npx vitest run` (41 testes no total: 27 do `pricing.ts` do Carlos em `tests/unit/pricing.test.ts`, 9 de validação e 4 de mapeamento de erros do catálogo em `tests/api/`, e 1 do projeto-base em `tests/api/health.test.ts`) e `node tests/sql/catalog-sql.test.mjs` (verificações das migrations 002 e 007 num PostgreSQL real, via `@electric-sql/pglite`; precisa da 002 do Carlos no repositório e de `npm i -D @electric-sql/pglite`).
 Manuais:
 | # | Cenário | Esperado |
 |---|---|---|
@@ -119,7 +119,7 @@ Nenhum `.env` e nenhum arquivo de `_stubs-nao-commitar/` pode ir no commit.
 | Colunas de `categories`, `products`, `product_addons`, `promotions` | Guia, Apêndice E | Idênticas (products sem `category_id`/`image_path`, Adendo 4.1) |
 | `product_variants.price`, `product_categories`, `product_images` e índices | Adendo 4.2 | Idênticos, inclusive os nomes dos índices e a capa única |
 | Sem policy para `anon`/`authenticated` | Adendo 4.4 | Confirmado no banco: 0 policies, RLS ligado nas 7 tabelas |
-| Regra de preço, itens 1 a 7 | Adendo 4.5 | `pricing.ts` + 9 testes |
+| Regra de preço, itens 1 a 7 | Adendo 4.5 | `pricing.ts` (Carlos) + 27 testes em `tests/unit/pricing.test.ts` |
 | Nomes das rotas e das telas (`/catalogo`, `/produto/:slug`, `/admin/produtos`…) | Guia 7.1 e 7.3 | Idênticos |
 | Endpoints públicos e admin | Guia 6.3 | Idênticos (upload em `/image`) |
 | Formato `{ data, error }` e códigos HTTP | Guia 6.1 | Igual |
@@ -128,7 +128,7 @@ Nenhum `.env` e nenhum arquivo de `_stubs-nao-commitar/` pode ir no commit.
 | Nomes em inglês no código e no banco | Adendo D3 | Sim; português só na interface |
 
 ### Bug achado e corrigido nesta conferência
-`ON DELETE RESTRICT` devolve o código `23001` (não `23503`), e o tratamento de erro só reconhecia o segundo: uma exclusão bloqueada por vínculo viraria erro 500. Agora vira 409 (teste em `tests/api/response.test.ts`).
+`ON DELETE RESTRICT` devolve o código `23001` (não `23503`), e o tratamento de erro só reconhecia o segundo: uma exclusão bloqueada por vínculo viraria erro 500. Agora vira 409 (teste em `tests/api/catalog-errors.test.ts`).
 
 ### Diferenças conhecidas em relação ao Guia (para o Carlos decidir)
 1. **Seed da 006** quebra com o novo esquema (ver acima).
