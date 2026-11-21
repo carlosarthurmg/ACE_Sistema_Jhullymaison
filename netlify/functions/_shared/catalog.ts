@@ -1,4 +1,4 @@
-import { PromotionRow, resolvePrice, variantEffectivePrice } from './pricing'
+import { getEffectivePrice, type Promotion } from './pricing'
 
 export const BUCKET = 'product-images'
 export const PROMO_FIELDS = 'id,promotional_price,starts_at,ends_at,is_active'
@@ -7,6 +7,27 @@ export const CATEGORY_EMBED = 'product_categories(categories(id,name,slug,is_act
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Row = Record<string, any>
+
+/** Converte as promoções do banco (snake_case) para o formato do pricing.ts compartilhado. */
+function toPromotions(rows: unknown): Promotion[] {
+  return ((rows ?? []) as Row[]).map((p) => ({
+    promotionalPrice: p.promotional_price,
+    startsAt: p.starts_at,
+    endsAt: p.ends_at,
+    isActive: Boolean(p.is_active),
+  }))
+}
+
+/** Mantém o contrato público (snake_case) usando o cálculo único do pricing.ts. Não refaz conta de preço aqui. */
+function priceOf(row: Row) {
+  const p = getEffectivePrice({ basePrice: row.base_price, promotions: toPromotions(row.promotions) })
+  return {
+    base_price: p.originalPrice,
+    effective_price: p.effectivePrice,
+    on_promotion: p.onPromotion,
+    discount_percent: p.discountPercent,
+  }
+}
 
 export function publicUrl(path: string): string {
   return `${process.env.SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${path}`
@@ -44,7 +65,7 @@ export function categoriesOf(row: Row, onlyActive: boolean) {
 
 /** Contrato público de produto (item de lista). */
 export function toListItem(row: Row) {
-  const price = resolvePrice(row.base_price, row.promotions as PromotionRow[])
+  const price = priceOf(row)
   const cover = imagesOf(row)[0]
   return {
     id: row.id as string,
@@ -60,14 +81,14 @@ export function toListItem(row: Row) {
 
 /** Contrato público de produto (detalhe), consumido pelo carrinho do João. Preços já com a regra 4.5. */
 export function toDetail(row: Row) {
-  const promotions = row.promotions as PromotionRow[]
+  const promotions = toPromotions(row.promotions)
   const variants = ((row.product_variants ?? []) as Row[])
     .filter((v) => v.is_active)
     .map((v) => ({
       id: v.id as string,
       name: v.name as string,
       original_price: Number(v.price),
-      price: variantEffectivePrice(v.price, row.base_price, promotions),
+      price: getEffectivePrice({ basePrice: row.base_price, variantPrice: v.price, promotions }).effectivePrice,
     }))
     .sort((a, b) => a.original_price - b.original_price)
   const addons = ((row.product_addons ?? []) as Row[])
