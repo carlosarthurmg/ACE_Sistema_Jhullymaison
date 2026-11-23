@@ -1,0 +1,38 @@
+name: Validar pedidos em Supabase limpo
+on:
+  pull_request:
+    branches: [develop]
+    paths:
+      - 'supabase/migrations/**'
+      - 'tests/db/order-migrations.sql'
+      - '.github/workflows/orders-db.yml'
+  push:
+    branches: [feature/RF-19-pedidos-admin]
+permissions:
+  contents: read
+jobs:
+  migrations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.75.0
+      - name: Iniciar Supabase descartável sem migrations
+        working-directory: ${{ runner.temp }}
+        run: |
+          supabase init
+          supabase start -x studio,imgproxy,logflare,vector,edge-runtime,realtime,supavisor,postgres-meta,inbucket
+      - name: Aplicar 001 a 006 e verificar a 007
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: '54322'
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: postgres
+        run: |
+          for migration in supabase/migrations/00[1-6]_*.sql; do
+            psql -X -v ON_ERROR_STOP=1 --single-transaction --file="$migration"
+          done
+          psql -X -v ON_ERROR_STOP=1 --file=tests/db/order-migrations.sql

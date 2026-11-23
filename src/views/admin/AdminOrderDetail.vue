@@ -3,6 +3,8 @@ import { computed, ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { api } from "@/services/api-client";
 import { date, money, labels, type Order } from "./order-display";
+import { pricePurchasedItems, type PurchasedItem } from "../order-pricing";
+
 interface Detail extends Order {
   payment_method: string;
   recipient_name: string;
@@ -12,19 +14,19 @@ interface Detail extends Order {
   desired_at: string | null;
   profiles: { full_name: string; phone: string; anonymized_at: string | null };
   delivery_address_snapshot: Record<string, string> | null;
-  order_items: {
+  order_items: (PurchasedItem & {
     id: string;
     product_name_snapshot: string;
     variant_name_snapshot: string;
     personalization_note: string;
     quantity: number;
-    line_total: number;
     order_item_addons: {
       id: string;
       addon_name_snapshot: string;
+      unit_price_snapshot: number;
       quantity: number;
     }[];
-  }[];
+  })[];
   order_status_history: { changed_at: string; new_status: string }[];
 }
 const url = "/api/admin/orders/" + useRoute().params.id;
@@ -69,6 +71,7 @@ async function change(action: string) {
   }
 }
 onMounted(() => load().catch((e) => (error.value = e.message)));
+const breakdown = computed(() => pricePurchasedItems(order.value?.order_items ?? []));
 </script>
 <template>
   <p v-if="error" role="alert">{{ error }}</p>
@@ -103,15 +106,16 @@ onMounted(() => load().catch((e) => (error.value = e.message)));
     <p v-if="order.card_message">Cartão · {{ order.card_message }}</p>
     <h2>Itens</h2>
     <ul>
-      <li v-for="i in order.order_items" :key="i.id">
+      <li v-for="i in breakdown.lines" :key="i.id">
         {{ i.quantity }} × {{ i.product_name_snapshot }}
-        {{ i.variant_name_snapshot }} · {{ money(i.line_total) }}
+        {{ i.variant_name_snapshot }} · {{ money(i.itemTotal) }}
         <p>{{ i.personalization_note }}</p>
         <span v-for="a in i.order_item_addons" :key="a.id">
           + {{ a.quantity }} × {{ a.addon_name_snapshot }}</span
         >
       </li>
     </ul>
+    <p>Subtotal dos itens: {{ money(breakdown.subtotal) }}</p>
     <p v-if="order.customer_note">{{ order.customer_note }}</p>
     <h2>Histórico</h2>
     <ol>

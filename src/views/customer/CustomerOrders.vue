@@ -1,18 +1,19 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { api } from "@/services/api-client";
 import { labels, date, money, type Order } from "../admin/order-display";
+import { pricePurchasedItems, type PurchasedItem } from "../order-pricing";
+
 interface Detail extends Order {
   created_at: string;
   payment_method: string;
-  order_items: {
+  order_items: (PurchasedItem & {
     id: string;
     quantity: number;
     product_name_snapshot: string;
     variant_name_snapshot: string;
-    line_total: number;
-  }[];
+  })[];
   order_status_history: { new_status: string; changed_at: string }[];
 }
 const route = useRoute(),
@@ -55,6 +56,7 @@ watch(
   () => load(),
   { immediate: true },
 );
+const breakdown = computed(() => pricePurchasedItems(detail.value?.order_items ?? []));
 </script>
 <template>
   <main class="mx-auto max-w-3xl p-6">
@@ -72,11 +74,12 @@ watch(
       <p>{{ date(detail.created_at) }} · {{ money(detail.total) }}</p>
       <h2 class="mt-4 font-bold">Itens</h2>
       <ul>
-        <li v-for="i in detail.order_items" :key="i.id">
+        <li v-for="i in breakdown.lines" :key="i.id">
           {{ i.quantity }} × {{ i.product_name_snapshot }}
-          {{ i.variant_name_snapshot }} · {{ money(i.line_total) }}
+          {{ i.variant_name_snapshot }} · {{ money(i.itemTotal) }}
         </li>
       </ul>
+      <p>Subtotal dos itens: {{ money(breakdown.subtotal) }}</p>
       <h2 class="mt-4 font-bold">Histórico</h2>
       <ol>
         <li v-for="h in detail.order_status_history">

@@ -16,7 +16,7 @@
 CREATE UNIQUE INDEX IF NOT EXISTS notification_new_order_unique
   ON public.notification_outbox(order_id) WHERE notification_type = 'new_order';
 
-CREATE OR REPLACE FUNCTION public.log_order_created()
+CREATE FUNCTION public.log_order_created()
 RETURNS trigger
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -33,7 +33,6 @@ BEGIN
 END;
 $$;
 
-DROP TRIGGER IF EXISTS orders_log_created ON public.orders;
 CREATE TRIGGER orders_log_created
 AFTER INSERT ON public.orders
 FOR EACH ROW EXECUTE FUNCTION public.log_order_created();
@@ -44,7 +43,7 @@ FOR EACH ROW EXECUTE FUNCTION public.log_order_created();
 --   preparing -> ready_for_pickup (só retirada) | shipped (só entrega)
 --   ready_for_pickup | shipped -> delivered (só com pagamento 'paid')
 -- Cancelamento tem função própria (devolve estoque).
-CREATE OR REPLACE FUNCTION public.admin_change_order_status(
+CREATE FUNCTION public.admin_change_order_status(
   p_order_id UUID,
   p_new_status public.order_status,
   p_admin_id UUID
@@ -106,7 +105,7 @@ $$;
 -- 2b) Marcar pagamento -----------------------------------------------------
 -- Só 'paid' ou 'pending'. 'cancelled' só pelo cancelamento do pedido.
 -- Quem confirmou fica em admin_audit_logs (Adendo, seção 5.1).
-CREATE OR REPLACE FUNCTION public.admin_set_order_payment(
+CREATE FUNCTION public.admin_set_order_payment(
   p_order_id UUID,
   p_payment_status public.payment_status,
   p_admin_id UUID
@@ -162,7 +161,7 @@ $$;
 -- Decisão a confirmar com a cliente: se o pagamento já estava 'paid', ele
 -- permanece 'paid' (o reembolso é combinado fora do sistema). Se estava
 -- 'pending', vira 'cancelled'.
-CREATE OR REPLACE FUNCTION public.admin_cancel_order(
+CREATE FUNCTION public.admin_cancel_order(
   p_order_id UUID,
   p_admin_id UUID
 )
@@ -233,7 +232,7 @@ GRANT EXECUTE ON FUNCTION public.admin_set_order_payment(UUID, public.payment_st
 GRANT EXECUTE ON FUNCTION public.admin_cancel_order(UUID, UUID) TO service_role;
 
 -- O período usa a data de criação local da loja, com fim exclusivo.
-CREATE OR REPLACE FUNCTION public.admin_sales_summary(p_from timestamptz, p_until timestamptz)
+CREATE FUNCTION public.admin_sales_summary(p_from timestamptz, p_until timestamptz)
 RETURNS jsonb LANGUAGE sql STABLE SET search_path = public AS $$
   WITH sales AS (
     SELECT id, total, payment_method FROM orders
