@@ -30,6 +30,8 @@ E-commerce da loja Jhullymaison (buquês, cestas e presentes personalizados), de
 - Total do item = `(preço efetivo + soma(adicionais × quantidade)) × quantidade`. Total do pedido = soma dos itens. Sem taxa de entrega.
 - Produto com variações ativas: o cliente precisa escolher uma. Variações usam o estoque do produto.
 - Preço, nome e variação são copiados para `order_items` no momento da compra.
+- Como gravar: `order_items.unit_price_snapshot` = `unitPrice`; `order_items.line_total` = `productLineTotal` (só o produto); `order_item_addons.quantity` = quantidade do adicional **por unidade** do produto; `order_item_addons.line_total` = preço × qtd do adicional × qtd do item; `orders.subtotal` e `orders.total` = `calculateOrderTotals(...)`.
+- Importe sempre de `./_shared/pricing` (sem extensão). Contas em centavos; valores de saída em reais com 2 casas.
 
 ## Status e valores
 - Pedido: `awaiting_payment`, `preparing`, `ready_for_pickup`, `shipped`, `delivered`, `cancelled`.
@@ -69,7 +71,7 @@ Só crie arquivos da sua tarefa. Nunca edite arquivos compartilhados (`api-clien
 - **Enzo:** pedidos, pagamentos, status, painel admin, relatório, notificações.
 
 ## Variáveis de ambiente (nomes; valores só no `.env` local ou no painel do Netlify)
-`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_JWT_SECRET`, `ADMIN_NOTIFICATION_EMAIL`, `APP_BASE_URL`, `COOKIE_NAME`, `COOKIE_MAX_AGE_SECONDS`, `RATE_LIMIT_SECRET`, `INTERNAL_JOB_SECRET`, `MAIL_MODE`, `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `MAIL_FROM_NAME`.
+`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_JWT_SECRET`, `SESSION_ENCRYPTION_KEY`, `ADMIN_NOTIFICATION_EMAIL`, `APP_BASE_URL`, `COOKIE_NAME`, `COOKIE_MAX_AGE_SECONDS`, `RATE_LIMIT_SECRET`, `INTERNAL_JOB_SECRET`, `MAIL_MODE`, `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `MAIL_FROM_NAME`.
 (`RESEND_API_KEY` **não existe mais**.)
 
 ## Segurança e Git
