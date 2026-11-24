@@ -33,6 +33,19 @@ E-commerce da loja Jhullymaison (buquês, cestas e presentes personalizados), de
 - Como gravar: `order_items.unit_price_snapshot` = `unitPrice`; `order_items.line_total` = `productLineTotal` (só o produto); `order_item_addons.quantity` = quantidade do adicional **por unidade** do produto; `order_item_addons.line_total` = preço × qtd do adicional × qtd do item; `orders.subtotal` e `orders.total` = `calculateOrderTotals(...)`.
 - Importe sempre de `./_shared/pricing` (sem extensão). Contas em centavos; valores de saída em reais com 2 casas.
 
+## Autenticação e Supabase nas Functions (contrato único)
+- Cliente do banco: **só** `getServiceClient()` de `./_shared/supabase` (service role, ignora o RLS). Não crie outro helper nem alias.
+- Permissão: **só** `requireUser(request)` e `requireAdmin(request)` de `./_shared/auth`. Nenhum módulo lê `app_sessions` por conta própria.
+```ts
+const auth = await requireUser(request);   // ou requireAdmin(request)
+if (!auth.ok) return auth.response;        // 401 (sem sessão válida) ou 403 (não é admin)
+const { userId, role } = auth;             // role: "customer" | "admin"
+```
+- Sessão negada devolve `{ ok: false, response }`; erro de banco é **lançado** como exceção.
+- `./_shared/session` tem as peças do login: `generateSessionToken`, `hashSessionToken` (SHA-256 em **hex**), `encryptSessionPayload` / `decryptSessionPayload` (AES-256-GCM), `buildSessionCookie`, `buildClearSessionCookie`.
+- Gerar a `SESSION_ENCRYPTION_KEY`: `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`. Uma chave diferente por ambiente; nunca no Git.
+- Endpoint de sessão: `GET /api/auth/session` (arquivo `auth-session.ts`).
+
 ## Status e valores
 - Pedido: `awaiting_payment`, `preparing`, `ready_for_pickup`, `shipped`, `delivered`, `cancelled`.
 - Pagamento (separado do pedido): `pending`, `paid`, `cancelled`. Forma: `pix`, `cash_on_delivery`, `card_on_delivery`.
