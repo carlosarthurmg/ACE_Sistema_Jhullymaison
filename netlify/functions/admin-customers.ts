@@ -1,5 +1,5 @@
 import type { Config } from "@netlify/functions";
-import { requireAdmin } from "./_shared/order-admin-access";
+import { requireAdmin } from "./_shared/auth";
 import { fail, ok } from "./_shared/response";
 import { getServiceClient } from "./_shared/supabase";
 

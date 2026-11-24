@@ -1,6 +1,6 @@
 import type { Config } from "@netlify/functions";
 import { getServiceClient } from "./_shared/supabase";
-import { requireAdmin } from "./_shared/order-admin-access";
+import { requireAdmin } from "./_shared/auth";
 import { ok, fail } from "./_shared/response";
 
 const ORDER_STATUSES = [
@@ -212,6 +212,11 @@ const RESULT_FIELDS = (o: Record<string, unknown>) => ({
 
 export default async function adminOrders(event: Request): Promise<Response> {
   try {
+    if (event.method !== "GET" && event.headers.has("cookie")) {
+      const base = process.env.APP_BASE_URL;
+      if (!base || event.headers.get("origin") !== new URL(base).origin)
+        return fail(403, "FORBIDDEN", "Origem da requisição inválida.");
+    }
     const auth = await requireAdmin(event);
     if (!auth.ok) return auth.response;
 

@@ -1,11 +1,11 @@
 import type { Config } from "@netlify/functions";
-import { requireOrderSession } from "./_shared/order-admin-access";
+import { requireUser } from "./_shared/auth";
 import { getServiceClient } from "./_shared/supabase";
 import { ok, fail } from "./_shared/response";
 
 export default async function history(request: Request) {
   try {
-    const session = await requireOrderSession(request);
+    const session = await requireUser(request);
     if (!session.ok) return session.response;
     const url = new URL(request.url);
     const id = url.pathname.split("/")[3];

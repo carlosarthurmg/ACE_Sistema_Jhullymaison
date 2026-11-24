@@ -4,7 +4,13 @@ PR #1 · branch `feature/RF-19-pedidos-admin` · código revisado em `c5a37c3`.
 
 O Git atribui a Enzo Morais o commit `168b06a` (22 arquivos). O merge da develop (`0bdecc4`) e a revisão técnica (`c5a37c3`) estão registrados como Codex. A versão revisada tem 26 arquivos de implementação e validação diferentes da develop `ca47ab6`. As migrations 001–006 e o módulo compartilhado de pricing vieram da develop.
 
-## Posição no Adendo 1 v1.1
+## Integração preparada para o PR de autenticação
+
+Na branch `feature/RF-19-integracao-auth`, os endpoints administrativos de pedidos, clientes e relatórios usam `requireAdmin`; o histórico do cliente usa `requireUser` e filtra os pedidos pelo usuário autenticado. O cliente Supabase e os guards vêm do PR #5 de Carlos. A verificação da origem continua nas alterações de pedidos.
+
+Os 73 testes da suíte integrada passaram localmente, incluindo os cinco novos casos de autorização de pedidos com Supabase simulado. A checagem TypeScript e o build também passaram. A integração ao PR #1 aguarda a entrada do PR #5 na develop. O login interativo e o recebimento de um e-mail real via Netlify/Gmail continuam pendentes.
+
+## Posição no Adendo 1 v1.1 na entrega original do PR #1
 
 | Seção | Entrega ou evidência | Pendência |
 | --- | --- | --- |
