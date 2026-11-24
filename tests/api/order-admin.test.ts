@@ -17,13 +17,13 @@ describe("Painel administrativo", () => {
       expect((await response.json()).data).toBeNull();
     },
   );
-  it("exige a origem da loja nas alterações", async () => {
+  it.each([null, "null", "https://outra.test"])("rejeita origem inválida nas alterações (%s)", async origin => {
     vi.stubEnv("COOKIE_NAME", "jm_session");
     vi.stubEnv("APP_BASE_URL", "https://loja.test");
     const response = await orders(
       new Request("https://loja.test/api/admin/orders", {
         method: "PATCH",
-        headers: { Cookie: "jm_session=fixture", Origin: "https://outra.test" },
+        headers: { Cookie: "jm_session=" + "a".repeat(32), ...(origin === null ? {} : { Origin: origin }) },
       }),
     );
     expect(response.status).toBe(403);

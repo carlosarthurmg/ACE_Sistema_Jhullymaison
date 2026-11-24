@@ -1,4 +1,4 @@
--- 007_order_admin_functions.sql
+-- 008_order_admin_functions.sql
 -- Autor: Enzo Morais | RF18, RF19, RF30 | Adendo 1, seções 4.3 e 5
 --
 -- O que faz:

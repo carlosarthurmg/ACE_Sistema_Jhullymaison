@@ -12,7 +12,7 @@ afterEach(() => { vi.restoreAllMocks(); vi.unstubAllEnvs(); });
 const customerId = "10000000-0000-4000-8000-000000000001";
 const orderId = "20000000-0000-4000-8000-000000000001";
 
-function session(role: "admin" | "customer") {
+function session(role: "admin" | "customer", orderRows: Record<string, unknown>[] = []) {
   vi.stubEnv("COOKIE_NAME", "jm_session");
   const requests: URL[] = [];
   const client = createClient("https://db.test", "test-key", {
@@ -25,7 +25,7 @@ function session(role: "admin" | "customer") {
           return Response.json([{ user_id: customerId, revoked_at: null,
             expires_at: new Date(Date.now() + 3600000).toISOString() }]);
         case "profiles": return Response.json([{ role, anonymized_at: null }]);
-        case "orders": return Response.json([]);
+        case "orders": return Response.json(orderRows);
         case "admin_sales_summary": return Response.json({ orders: 0, total: 0 });
         default: throw Error("Consulta inesperada");
       }
@@ -55,4 +55,34 @@ it("restringe lista e detalhe ao cliente identificado pela sessão", async () =>
   const reads = requests.filter(url => url.pathname === "/rest/v1/orders");
   expect(reads.map(url => url.searchParams.get("customer_id"))).toEqual(["eq." + customerId, "eq." + customerId]);
   expect(reads[1].searchParams.get("id")).toBe("eq." + orderId);
+});
+
+it("omite dados pessoais do cliente anonimizado no pedido individual", async () => {
+  const { request } = session("admin", [{ id: orderId, profiles: {
+    anonymized_at: "2026-01-01", full_name: "Nome privado", phone: "111222333"
+  }, recipient_name: "Nome privado", recipient_phone: "111222333", order_items: [] }]);
+  const response = await orders(request("/api/admin/orders/" + orderId));
+  expect(response.status).toBe(200);
+  const body = await response.json();
+  expect(body.data.profiles).toMatchObject({ full_name: "Cliente anonimizado", phone: null });
+  expect(JSON.stringify(body)).not.toMatch(/Nome privado|111222333/);
+});
+
+it("recusa cookies duplicados antes de consultar a sessão", async () => {
+  const { requests } = session("admin");
+  const cookie = "jm_session=" + generateSessionToken();
+  const response = await orders(new Request("https://loja.test/api/admin/orders", {
+    headers: { cookie: cookie + "; " + cookie },
+  }));
+  expect(response.status).toBe(401);
+  expect(requests).toHaveLength(0);
+});
+
+it("recusa alteração administrativa por cliente com origem válida", async () => {
+  vi.stubEnv("APP_BASE_URL", "https://loja.test");
+  const { request, requests } = session("customer");
+  const r = new Request(request("/api/admin/orders/" + orderId + "/cancel"), {method:"POST"});
+  r.headers.set("origin", "https://loja.test");
+  expect((await orders(r)).status).toBe(403);
+  expect(requests).toHaveLength(2);
 });

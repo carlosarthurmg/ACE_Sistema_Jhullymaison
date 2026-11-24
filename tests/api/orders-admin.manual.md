@@ -1,6 +1,6 @@
 # Testes manuais — pedidos no painel (Enzo) — RF19, RF30
 
-Pré-requisitos: migrations 001 a 007 rodadas, `netlify dev` aberto, login como admin
+Pré-requisitos: migrations 001 a 008 rodadas, `netlify dev` aberto, login como admin
 (cookie de sessão), pelo menos um pedido de **entrega** e um de **retirada** criados pelo checkout.
 Execute as ações em `/admin/pedidos` com uma sessão administrativa do plano A. Para testar via cliente HTTP, envie o cookie de desenvolvimento e, nas alterações, o cabeçalho Origin igual à origem de APP_BASE_URL.
 
@@ -37,7 +37,7 @@ Execute as ações em `/admin/pedidos` com uma sessão administrativa do plano A
 
 ## Integração com os módulos da equipe
 
-- Aplicar as migrations 001–006 corrigidas no banco de desenvolvimento antes da 007. A 007 registra histórico inicial e aviso em fila na mesma transação do pedido. O checkout não deve repetir esses inserts.
+- Aplicar as migrations 001–006 corrigidas no banco de desenvolvimento e a 007 do catálogo antes da 008 de pedidos. A 008 registra histórico inicial e aviso em fila na mesma transação do pedido. O checkout não deve repetir esses inserts.
 - Para tentar o primeiro e-mail imediatamente, o checkout chama e aguarda `enqueueNewOrderNotification(orderId)` após o commit. Sem a chamada, a Function agendada processa a fila. Configure ADMIN_NOTIFICATION_EMAIL também em desenvolvimento. SMTP pode entregar novamente se o processo cair depois do envio e antes da confirmação no banco.
 - A branch de integração usa os guards do PR #5. Na homologação, entrar pelo login da aplicação com uma conta cliente e uma administradora. Com a primeira, conferir o histórico próprio, retorno 404 para um pedido de outro cliente e 403 nas APIs administrativas. Com a segunda, conferir a consulta ao relatório e uma mudança de status em pedido de teste. Após sair, verificar retorno 401 ao consultar novamente.
 - O teste automatizado da integração usa o módulo de autenticação da equipe com o Supabase simulado. Registrar separadamente o resultado da sessão real e o recebimento do aviso na caixa de destino via Netlify/Gmail.

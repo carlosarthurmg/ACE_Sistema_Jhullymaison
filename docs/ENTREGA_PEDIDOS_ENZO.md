@@ -1,14 +1,18 @@
 # Entrega de pedidos — Enzo Morais
 
-PR #1 · branch `feature/RF-19-pedidos-admin` · código revisado em `c5a37c3`.
+PR #1 · branch `feature/RF-19-pedidos-admin`.
 
-O Git atribui a Enzo Morais o commit `168b06a` (22 arquivos). O merge da develop (`0bdecc4`) e a revisão técnica (`c5a37c3`) estão registrados como Codex. A versão revisada tem 26 arquivos de implementação e validação diferentes da develop `ca47ab6`. As migrations 001–006 e o módulo compartilhado de pricing vieram da develop.
+O Git atribui a Enzo Morais o commit `168b06a` (22 arquivos). A revisão anterior à integração da autenticação incluiu 26 arquivos de implementação e validação diferentes da develop `ca47ab6`. As migrations 001–006 e o módulo compartilhado de pricing vieram da develop.
 
-## Integração preparada para o PR de autenticação
+## Revisão atual do PR de pedidos
+
+O PR incorpora o módulo de autenticação compartilhado, com recusa de cookies duplicados e validação da origem nas mutações. A migration de pedidos agora é 008, após a 007 do catálogo. As menções à antiga 007 de pedidos abaixo registram os testes históricos.
+
+## Histórico da integração com o PR de autenticação
 
 Na branch `feature/RF-19-integracao-auth`, os endpoints administrativos de pedidos, clientes e relatórios usam `requireAdmin`; o histórico do cliente usa `requireUser` e filtra os pedidos pelo usuário autenticado. O cliente Supabase e os guards vêm do PR #5 de Carlos. A verificação da origem continua nas alterações de pedidos.
 
-Os 73 testes da suíte integrada passaram localmente, incluindo os cinco novos casos de autorização de pedidos com Supabase simulado. A checagem TypeScript e o build também passaram. A integração ao PR #1 aguarda a entrada do PR #5 na develop. O login interativo e o recebimento de um e-mail real via Netlify/Gmail continuam pendentes.
+Os 73 testes da suíte integrada passaram localmente, incluindo os cinco novos casos de autorização de pedidos com Supabase simulado. A checagem TypeScript e o build também passaram. A revisão atual incorporou essa integração ao PR #1. O login interativo e o recebimento de um e-mail real via Netlify/Gmail continuam pendentes.
 
 ## Posição no Adendo 1 v1.1 na entrega original do PR #1
 
@@ -16,7 +20,7 @@ Os 73 testes da suíte integrada passaram localmente, incluindo os cinco novos c
 | --- | --- | --- |
 | 4.3–4.4, 5.1–5.2 · histórico, banco e pagamentos | A 007 registra histórico e auditoria. Status do pedido e do pagamento são separados. Cancelamento repõe estoque. No teste, a 007 preservou as mesmas 21 tabelas com RLS. | Homologar os fluxos com usuários reais. |
 | 4.5 · preço único | Painel e histórico do cliente usam o pricing da equipe com os preços registrados na compra, incluindo adicionais. | Integração ponta a ponta com o checkout da equipe. |
-| 6–6.1 · sessão | Há proteção nas APIs e testes de requisição sem sessão e de origem inválida. | Integrar o login por cookie quando o módulo compartilhado de autenticação entrar na develop. Verificar acesso real de cliente e admin. |
+| 6–6.1 · sessão | Há proteção nas APIs e testes de requisição sem sessão e de origem inválida. | Verificar acesso real de cliente e admin. |
 | 7.1–7.4 · aviso de pedido | Geração da mensagem, fila no banco e rotina de reenvio a cada 15 minutos, com até cinco tentativas. O teste SQL confirmou um aviso na fila por novo pedido e o teste unitário verificou seu conteúdo. | Confirmar recebimento via Gmail a partir do Netlify e homologar as retentativas no ambiente publicado. |
 | 9.2 e 10 · preparação e entrega | Branch, commit, push, PR e validação em um Supabase descartável. | Revisão e merge pelo responsável. O histórico do PR não comprova criação de uma conta Supabase pessoal nem execução manual por Enzo. |
 | 11 · acessibilidade | O PR inclui telas administrativas e histórico do cliente. | Sem evidência de conclusão do checklist de teclado, contraste, rótulos, zoom e alvos de toque. |
@@ -54,7 +58,7 @@ A lista registra todos os arquivos da versão revisada em relação à develop, 
 | `src/views/admin/order-display.ts` | Entrega original |
 | `src/views/customer/CustomerOrders.vue` | Entrega original e ajuste na revisão |
 | `src/views/order-pricing.ts` | Adicionado na revisão |
-| `supabase/migrations/007_order_admin_functions.sql` | Entrega original e ajuste na revisão |
+| `supabase/migrations/008_order_admin_functions.sql` | Entrega original e ajuste na revisão |
 | `tests/api/order-admin.test.ts` | Entrega original |
 | `tests/api/orders-admin.manual.md` | Entrega original |
 | `tests/db/order-migrations.sql` | Adicionado na revisão |

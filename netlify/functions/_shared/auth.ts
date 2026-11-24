@@ -47,6 +47,12 @@ export async function requireUser(request: Request, options: AuthOptions = {}): 
   const token = getSessionToken(request, settings.name);
   if (!token) return denied();
 
+  if (!["GET", "HEAD", "OPTIONS"].includes(request.method)) {
+    const base = process.env.APP_BASE_URL;
+    if (!base || request.headers.get("origin") !== new URL(base).origin)
+      return { ok: false, response: fail(403, "FORBIDDEN", "Origem da requisição inválida.") };
+  }
+
   const client = options.client ?? getServiceClient();
   const now = (options.now ?? new Date()).getTime();
 

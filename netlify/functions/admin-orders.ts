@@ -212,11 +212,6 @@ const RESULT_FIELDS = (o: Record<string, unknown>) => ({
 
 export default async function adminOrders(event: Request): Promise<Response> {
   try {
-    if (event.method !== "GET" && event.headers.has("cookie")) {
-      const base = process.env.APP_BASE_URL;
-      if (!base || event.headers.get("origin") !== new URL(base).origin)
-        return fail(403, "FORBIDDEN", "Origem da requisição inválida.");
-    }
     const auth = await requireAdmin(event);
     if (!auth.ok) return auth.response;
 
@@ -247,6 +242,20 @@ export default async function adminOrders(event: Request): Promise<Response> {
         .order("changed_at", { referencedTable: "order_status_history" })
         .maybeSingle();
       if (error) throw error;
+      if (data?.profiles?.anonymized_at) {
+        return ok({
+          ...data,
+          profiles: { ...data.profiles, full_name: "Cliente anonimizado", phone: null },
+          recipient_name: null,
+          recipient_phone: null,
+          delivery_address_snapshot: null,
+          card_message: null,
+          customer_note: null,
+          order_items: data.order_items.map((item: Record<string, unknown>) => ({
+            ...item, personalization_note: null,
+          })),
+        });
+      }
       return data
         ? ok(data)
         : fail(404, "ORDER_NOT_FOUND", "Pedido não encontrado.");

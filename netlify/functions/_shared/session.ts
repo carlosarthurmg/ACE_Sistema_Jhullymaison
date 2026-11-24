@@ -125,12 +125,9 @@ export function getSessionToken(request: Request, cookieName: string): string | 
   const header = request.headers.get("cookie");
   if (!header) return null;
 
-  for (const part of header.split(";")) {
-    const [rawName, ...rest] = part.trim().split("=");
-    if (rawName === cookieName) {
-      const value = rest.join("=");
-      return /^[A-Za-z0-9_-]{20,200}$/.test(value) ? value : null;
-    }
-  }
-  return null;
+  const matches = header.split(";").map(part => part.trim())
+    .filter(part => part.split("=", 1)[0] === cookieName);
+  if (matches.length !== 1) return null;
+  const token = matches[0].slice(cookieName.length + 1);
+  return /^[A-Za-z0-9_-]{20,200}$/.test(token) ? token : null;
 }
