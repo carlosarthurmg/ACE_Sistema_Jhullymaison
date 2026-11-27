@@ -27,7 +27,7 @@ Branch: `feature/RF-03-catalog`. Versão alinhada ao **Adendo 1 v1.1** e ao reto
 | 11: acessibilidade (RNF20) | Ver checklist no fim. |
 
 ## Integração com o projeto-base (como está o repositório hoje)
-Verificação no repositório real (branch `feature/RF-03-catalog`, já com o `pricing.ts` do Carlos vindo da `develop`), em 21/11/2026: `npm run typecheck` passa sem erros, `npm test` passa com **41 testes** (27 do pricing do Carlos, 13 do catálogo e 1 do projeto-base) e `npm run build` (vue-tsc + vite build) passa.
+Verificação no repositório real (branch `feature/RF-03-catalog`, já com o `pricing.ts` do Carlos vindo da `develop`), em 21/11/2026: `npm run typecheck` passa sem erros, `npm test` passa com **43 testes** (27 do pricing do Carlos, 15 do catálogo e 1 do projeto-base) e `npm run build` (vue-tsc + vite build) passa.
 
 **Arquivos novos (só meus, sem colisão):** tudo em `src/` (componentes, views, `catalog.service.ts`, `catalog.types.ts`, `catalog.routes.ts`, `catalog.css`…), `netlify/functions/*` do catálogo, `_shared/{catalog,catalog-errors,catalog-validation,supabase,audit}.ts`, `tests/` e `supabase/migrations/007_catalog_atomic_operations.sql`.
 
@@ -76,7 +76,7 @@ Admin: `/api/admin/categories[/:id]`, `/api/admin/products[/:id]`, `/api/admin/p
 O upload mantém a rota do Guia (`POST /api/admin/products/:id/image`); cada chamada adiciona uma foto (Adendo 4.2). Além do Guia: `GET` de detalhe/lista admin, `PATCH/DELETE` dos filhos e `PATCH/DELETE /image/:imageId` (capa, descrição, remover).
 
 ## Testes
-Automatizados: `npx vitest run` (41 testes no total: 27 do `pricing.ts` do Carlos em `tests/unit/pricing.test.ts`, 9 de validação e 4 de mapeamento de erros do catálogo em `tests/api/`, e 1 do projeto-base em `tests/api/health.test.ts`) e `node tests/sql/catalog-sql.test.mjs` (verificações das migrations 002 e 007 num PostgreSQL real, via `@electric-sql/pglite`; precisa da 002 do Carlos no repositório e de `npm i -D @electric-sql/pglite`).
+Automatizados: `npx vitest run` (43 testes no total: 27 do `pricing.ts` do Carlos em `tests/unit/pricing.test.ts`, 9 de validação, 4 de mapeamento de erros e 2 da migration 007 do catálogo em `tests/api/`, e 1 do projeto-base em `tests/api/health.test.ts`) e `node tests/sql/catalog-sql.test.mjs` (verificações das migrations 002 e 007 num PostgreSQL real, via `@electric-sql/pglite`; precisa da 002 do Carlos no repositório e de `npm i -D @electric-sql/pglite`).
 Manuais:
 | # | Cenário | Esperado |
 |---|---|---|
