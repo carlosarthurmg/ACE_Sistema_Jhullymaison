@@ -2,16 +2,8 @@
 -- Responsável: Rodolfo Dheymison. Rodar DEPOIS de 001 a 006 (usa order_items e cart_items).
 -- Triggers e operações atômicas do catálogo. Prefixo catalog_ para não colidir com funções da 005.
 
--- Funções com prefixo catalog_ para não colidir com as da migration 005.
-CREATE OR REPLACE FUNCTION public.catalog_touch_updated_at()
-RETURNS TRIGGER LANGUAGE plpgsql AS $$
-BEGIN
-  NEW.updated_at = now();
-  RETURN NEW;
-END $$;
-
-CREATE TRIGGER products_touch_updated_at BEFORE UPDATE ON public.products
-  FOR EACH ROW EXECUTE FUNCTION public.catalog_touch_updated_at();
+-- products.updated_at já é mantido pelo trigger products_set_updated_at da migration 005 (set_updated_at).
+-- Não criar outro trigger aqui para não duplicar.
 
 -- RN07: preço promocional sempre menor que o preço original (reforço no banco).
 CREATE OR REPLACE FUNCTION public.catalog_check_promotion_price()
@@ -60,6 +52,9 @@ END $$;
 CREATE OR REPLACE FUNCTION public.catalog_reassign_category(p_from UUID, p_to UUID)
 RETURNS VOID LANGUAGE plpgsql AS $$
 BEGIN
+  IF p_from = p_to THEN
+    RAISE EXCEPTION 'source and target category must differ' USING ERRCODE = '22023';
+  END IF;
   IF NOT EXISTS (SELECT 1 FROM public.categories WHERE id = p_to) THEN
     RAISE EXCEPTION 'target category not found' USING ERRCODE = 'P0002';
   END IF;
