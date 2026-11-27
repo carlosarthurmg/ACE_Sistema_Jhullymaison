@@ -5,11 +5,13 @@ import type { ApiResponse } from "@/types/api.types";
 export class ApiError extends Error {
   status: number;
   code: string;
+  details: unknown;
 
-  constructor(status: number, code: string, message: string) {
+  constructor(status: number, code: string, message: string, details?: unknown) {
     super(message);
     this.status = status;
     this.code = code;
+    this.details = details;
   }
 }
 
@@ -30,6 +32,7 @@ async function request<T>(method: string, url: string, body?: unknown): Promise<
       response.status,
       payload?.error?.code ?? "UNKNOWN_ERROR",
       payload?.error?.message ?? "Erro inesperado. Tente novamente.",
+      payload?.error?.details,
     );
   }
   return payload?.data as T;
