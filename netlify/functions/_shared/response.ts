@@ -13,6 +13,9 @@ export function noContent(): Response {
   return new Response(null, { status: 204 });
 }
 
-export function fail(status: number, code: string, message: string): Response {
-  return Response.json({ data: null, error: { code, message } }, { status });
+/** `details` é opcional (ex.: erros por campo ou itens sem estoque). */
+export function fail(status: number, code: string, message: string, details?: unknown): Response {
+  const error: { code: string; message: string; details?: unknown } = { code, message };
+  if (details !== undefined) error.details = details;
+  return Response.json({ data: null, error }, { status });
 }
