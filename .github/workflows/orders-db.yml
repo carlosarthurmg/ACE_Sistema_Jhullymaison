@@ -1,0 +1,46 @@
+name: Validar pedidos em Supabase limpo
+on:
+  pull_request:
+    branches: [develop]
+    paths:
+      - 'supabase/migrations/**'
+      - 'tests/db/order-migrations.sql'
+      - '.github/workflows/orders-db.yml'
+  push:
+    branches: [feature/RF-19-pedidos-admin]
+permissions:
+  contents: read
+jobs:
+  migrations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.75.0
+      - name: Iniciar Supabase descartável sem migrations
+        working-directory: ${{ runner.temp }}
+        run: |
+          supabase init
+          supabase start -x studio,imgproxy,logflare,vector,edge-runtime,realtime,supavisor,postgres-meta,inbucket
+      - name: Aplicar catálogo 007 e verificar pedidos 008
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: '54322'
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: postgres
+        run: |
+          for migration in supabase/migrations/00[1-6]_*.sql; do
+            psql -X -v ON_ERROR_STOP=1 --single-transaction --file="$migration"
+          done
+          catalog=supabase/migrations/007_catalog_atomic_operations.sql
+          if [[ ! -f "$catalog" ]]; then
+            # Antes do merge do PR #4, testar o SQL publicado pelo catálogo.
+            git fetch --depth=1 origin d56fce0913bcfc4b983b88217b54a3a78510edc6
+            git show "FETCH_HEAD:$catalog" > "$RUNNER_TEMP/catalog-007.sql"
+            catalog="$RUNNER_TEMP/catalog-007.sql"
+          fi
+          psql -X -v ON_ERROR_STOP=1 --single-transaction --file="$catalog"
+          psql -X -v ON_ERROR_STOP=1 --file=tests/db/order-migrations.sql
